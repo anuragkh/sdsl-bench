@@ -120,6 +120,88 @@ void Benchmark::BenchmarkExtract() {
   fprintf(stderr, "Benchmark complete!\n");
 }
 
+void Benchmark::BenchmarkCountTicks() {
+  timestamp_t t0, t1, tdiff;
+
+  fprintf(stderr, "Warming up...\n");
+  uint64_t sum = 0;
+  for (int i = 0; i < std::min(queries.size(), 100UL); i++) {
+    const char *query = queries[i].c_str();
+    auto c = count(csa, query);
+    sum += c;
+  }
+  fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
+
+  fprintf(stderr, "Benchmarking count latency...\n");
+  // Benchmarking count latency
+  std::ofstream f_c(input_file_ + std::string(".count.ticks"));
+  for (int i = 0; i < queries.size(); i++) {
+    const char *query = queries[i].c_str();
+    t0 = rdtsc();
+    auto c = count(csa, query);
+    t1 = rdtsc();
+    tdiff = t1 - t0;
+    f_c << c << "\t" << tdiff << "\n";
+  }
+  f_c.close();
+  fprintf(stderr, "Benchmark complete!\n");
+}
+
+void Benchmark::BenchmarkSearchTicks() {
+  timestamp_t t0, t1, tdiff;
+
+  // Warmup
+  fprintf(stderr, "Warming up...\n");
+  uint64_t sum = 0;
+  for (int i = 0; i < std::min(queries.size(), 100UL); i++) {
+    const char *query = queries[i].c_str();
+    auto locs = locate(csa, query);
+    sum += locs.size();
+  }
+  fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
+
+  // Benchmarking search latency
+  fprintf(stderr, "Benchmarking search latency...\n");
+  std::ofstream f_l(input_file_ + std::string(".search.ticks"));
+  for (int i = 0; i < queries.size(); i++) {
+    const char *query = queries[i].c_str();
+    t0 = rdtsc();
+    auto locs = locate(csa, query);
+    t1 = rdtsc();
+    tdiff = t1 - t0;
+    f_l << locs.size() << "\t" << tdiff << "\n";
+  }
+  f_l.close();
+  fprintf(stderr, "Benchmark complete!\n");
+}
+
+void Benchmark::BenchmarkExtractTicks() {
+  timestamp_t t0, t1, tdiff;
+
+  fprintf(stderr, "Warming up...\n");
+  uint64_t sum = 0;
+  for (int i = 0; i < 1000; i++) {
+    uint64_t pos = rand() % (csa.size() - 1000);
+    auto val = extract(csa, pos, pos + 1000);
+    sum += val.length();
+  }
+  fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
+
+  fprintf(stderr, "Benchmarking extract latency...\n");
+  // Benchmarking extract latency
+  std::ofstream f_e(input_file_ + std::string(".extract.ticks"));
+  for (int i = 0; i < 100000; i++) {
+    uint64_t pos = rand() % (csa.size() - 1000);
+    t0 = rdtsc();
+    auto val = extract(csa, pos, pos + 1000);
+    t1 = rdtsc();
+    tdiff = t1 - t0;
+    f_e << val.length() << "\t" << tdiff << "\n";
+  }
+  f_e.close();
+  fprintf(stderr, "Benchmark complete!\n");
+}
+
 void Benchmark::BenchmarkLookupNPA() {
   timestamp_t t0, t1, tdiff;
 
@@ -137,9 +219,9 @@ void Benchmark::BenchmarkLookupNPA() {
   std::ofstream f_n(input_file_ + std::string(".npa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
-    t0 = get_timestamp();
+    t0 = rdtsc();
     auto val = csa.psi[index];
-    t1 = get_timestamp();
+    t1 = rdtsc();
     tdiff = t1 - t0;
     f_n << val << "\t" << tdiff << "\n";
   }
@@ -164,9 +246,9 @@ void Benchmark::BenchmarkLookupISA() {
   std::ofstream f_i(input_file_ + std::string(".isa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
-    t0 = get_timestamp();
+    t0 = rdtsc();
     auto val = csa.isa[index];
-    t1 = get_timestamp();
+    t1 = rdtsc();
     tdiff = t1 - t0;
     f_i << val << "\t" << tdiff << "\n";
   }
@@ -191,9 +273,9 @@ void Benchmark::BenchmarkLookupSA() {
   std::ofstream f_s(input_file_ + std::string(".sa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
-    t0 = get_timestamp();
+    t0 = rdtsc();
     auto val = csa[index];
-    t1 = get_timestamp();
+    t1 = rdtsc();
     tdiff = t1 - t0;
     f_s << val << "\t" << tdiff << "\n";
   }
@@ -215,6 +297,10 @@ int main(int argc, char *argv[]) {
   bench.BenchmarkLookupNPA();
   bench.BenchmarkLookupISA();
   bench.BenchmarkLookupSA();
+
+  bench.BenchmarkExtractTicks();
+  bench.BenchmarkCountTicks();
+  bench.BenchmarkSearchTicks();
 
   bench.BenchmarkExtract();
   bench.BenchmarkCount();
