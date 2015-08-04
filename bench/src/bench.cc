@@ -100,7 +100,7 @@ void Benchmark::BenchmarkExtract() {
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
     uint64_t pos = rand() % (csa.size() - 1000);
-    auto val = extract(csa, pos, pos + 1000);
+    auto val = extract(csa, pos, pos + 1000 - 1);
     sum += val.length();
   }
   fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
@@ -111,7 +111,7 @@ void Benchmark::BenchmarkExtract() {
   for (int i = 0; i < 100000; i++) {
     uint64_t pos = rand() % (csa.size() - 1000);
     t0 = get_timestamp();
-    auto val = extract(csa, pos, pos + 1000);
+    auto val = extract(csa, pos, pos + 1000 - 1);
     t1 = get_timestamp();
     tdiff = t1 - t0;
     f_e << val.length() << "\t" << tdiff << "\n";
@@ -182,7 +182,7 @@ void Benchmark::BenchmarkExtractTicks() {
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
     uint64_t pos = rand() % (csa.size() - 1000);
-    auto val = extract(csa, pos, pos + 1000);
+    auto val = extract(csa, pos, pos + 1000 - 1);
     sum += val.length();
   }
   fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
@@ -193,7 +193,7 @@ void Benchmark::BenchmarkExtractTicks() {
   for (int i = 0; i < 100000; i++) {
     uint64_t pos = rand() % (csa.size() - 1000);
     t0 = rdtsc();
-    auto val = extract(csa, pos, pos + 1000);
+    auto val = extract(csa, pos, pos + 1000 - 1);
     t1 = rdtsc();
     tdiff = t1 - t0;
     f_e << val.length() << "\t" << tdiff << "\n";
