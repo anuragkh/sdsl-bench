@@ -6,7 +6,8 @@ using namespace sdsl;
 
 int main(int argc, char **argv) {
 	if(argc < 4) {
-		fprintf(stderr, "Usage: %s [csa-type] [input-file] [output-file]", argv[0]);
+		fprintf(stderr, "Usage: %s [csa-type] [input-file] [output-file]\n", argv[0]);
+		return -1;
 	}
 	int csa_type = atoi(argv[1]);
 	if(csa_type == 0) {

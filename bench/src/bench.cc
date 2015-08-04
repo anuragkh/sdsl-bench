@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <vector>
+#include <algorithm>
 
 void Benchmark::ReadQueries(std::string& query_file) {
   std::ifstream inputfile(query_file);
@@ -33,6 +34,8 @@ Benchmark::Benchmark(std::string& input_file, std::string& query_file) {
 
   input_file_ = input_file;
   query_file_ = query_file;
+
+  fprintf(stderr, "CSA size = %llu\n", csa.size());
 }
 
 void Benchmark::BenchmarkCount() {
@@ -40,7 +43,7 @@ void Benchmark::BenchmarkCount() {
 
   fprintf(stderr, "Warming up...\n");
   uint64_t sum = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < std::min(queries.size(), 100UL); i++) {
     const char *query = queries[i].c_str();
     auto c = count(csa, query);
     sum += c;
@@ -49,7 +52,7 @@ void Benchmark::BenchmarkCount() {
 
   fprintf(stderr, "Benchmarking count latency...\n");
   // Benchmarking count latency
-  std::ofstream f_c((std::string("latency_count_") + input_file_).c_str());
+  std::ofstream f_c(input_file_ + std::string(".count"));
   for (int i = 0; i < queries.size(); i++) {
     const char *query = queries[i].c_str();
     t0 = get_timestamp();
@@ -68,7 +71,7 @@ void Benchmark::BenchmarkSearch() {
   // Warmup
   fprintf(stderr, "Warming up...\n");
   uint64_t sum = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < std::min(queries.size(), 100UL); i++) {
     const char *query = queries[i].c_str();
     auto locs = locate(csa, query);
     sum += locs.size();
@@ -77,7 +80,7 @@ void Benchmark::BenchmarkSearch() {
 
   // Benchmarking search latency
   fprintf(stderr, "Benchmarking search latency...\n");
-  std::ofstream f_l((std::string("latency_search_") + input_file_).c_str());
+  std::ofstream f_l(input_file_ + std::string(".search"));
   for (int i = 0; i < queries.size(); i++) {
     const char *query = queries[i].c_str();
     t0 = get_timestamp();
@@ -96,7 +99,7 @@ void Benchmark::BenchmarkExtract() {
   fprintf(stderr, "Warming up...\n");
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
-    uint64_t pos = rand() % csa.size();
+    uint64_t pos = rand() % (csa.size() - 1000);
     auto val = extract(csa, pos, pos + 1000);
     sum += val.length();
   }
@@ -104,9 +107,9 @@ void Benchmark::BenchmarkExtract() {
 
   fprintf(stderr, "Benchmarking extract latency...\n");
   // Benchmarking extract latency
-  std::ofstream f_e((std::string("latency_extract_") + input_file_).c_str());
+  std::ofstream f_e(input_file_ + std::string(".extract"));
   for (int i = 0; i < 100000; i++) {
-    uint64_t pos = rand() % csa.size();
+    uint64_t pos = rand() % (csa.size() - 1000);
     t0 = get_timestamp();
     auto val = extract(csa, pos, pos + 1000);
     t1 = get_timestamp();
@@ -124,18 +127,18 @@ void Benchmark::BenchmarkLookupNPA() {
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
     uint64_t index = rand() % csa.size();
-    auto val = csa.psi[i];
+    auto val = csa.psi[index];
     sum += val;
   }
   fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
 
   fprintf(stderr, "Benchmarking LookupNPA latency...\n");
   // Benchmarking extract latency
-  std::ofstream f_n((std::string("latency_npa_") + input_file_).c_str());
+  std::ofstream f_n(input_file_ + std::string(".npa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
     t0 = get_timestamp();
-    auto val = csa.psi[i];
+    auto val = csa.psi[index];
     t1 = get_timestamp();
     tdiff = t1 - t0;
     f_n << val << "\t" << tdiff << "\n";
@@ -151,18 +154,18 @@ void Benchmark::BenchmarkLookupISA() {
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
     uint64_t index = rand() % csa.size();
-    auto val = csa.isa[i];
+    auto val = csa.isa[index];
     sum += val;
   }
   fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
 
-  fprintf(stderr, "Benchmarking LookupNPA latency...\n");
+  fprintf(stderr, "Benchmarking LookupISA latency...\n");
   // Benchmarking extract latency
-  std::ofstream f_i((std::string("latency_isa_") + input_file_).c_str());
+  std::ofstream f_i(input_file_ + std::string(".isa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
     t0 = get_timestamp();
-    auto val = csa.isa[i];
+    auto val = csa.isa[index];
     t1 = get_timestamp();
     tdiff = t1 - t0;
     f_i << val << "\t" << tdiff << "\n";
@@ -178,18 +181,18 @@ void Benchmark::BenchmarkLookupSA() {
   uint64_t sum = 0;
   for (int i = 0; i < 1000; i++) {
     uint64_t index = rand() % csa.size();
-    auto val = csa[i];
+    auto val = csa[index];
     sum += val;
   }
   fprintf(stderr, "Warmup complete! Checksum = %llu\n", sum);
 
-  fprintf(stderr, "Benchmarking LookupNPA latency...\n");
+  fprintf(stderr, "Benchmarking LookupSA latency...\n");
   // Benchmarking extract latency
-  std::ofstream f_s((std::string("latency_sa_") + input_file_).c_str());
+  std::ofstream f_s(input_file_ + std::string(".sa"));
   for (int i = 0; i < 100000; i++) {
     uint64_t index = rand() % csa.size();
     t0 = get_timestamp();
-    auto val = csa.bwt[i];
+    auto val = csa[index];
     t1 = get_timestamp();
     tdiff = t1 - t0;
     f_s << val << "\t" << tdiff << "\n";
@@ -201,7 +204,7 @@ void Benchmark::BenchmarkLookupSA() {
 int main(int argc, char *argv[]) {
   if (argc != 3) {
     fprintf(stderr, "Usage: %s [inputfile] [queryfile]\n", argv[0]);
-    return 0;
+    return -1;
   }
 
   std::string input_file = argv[1];
