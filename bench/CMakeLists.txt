@@ -19,7 +19,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
-set(INCLUDE $ENV{HOME}/include)
+set(INCLUDE $ENV{HOME}/include include)
 set(LIBRARY $ENV{HOME}/lib)
 include_directories(${INCLUDE})
 link_directories(${LIBRARY})
