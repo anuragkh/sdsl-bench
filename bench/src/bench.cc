@@ -17,8 +17,8 @@ void Benchmark::ReadQueries(std::string& query_file) {
   while (getline(inputfile, line)) {
     // Extract key and value
     int split_index = line.find_first_of('\t');
-    bin = line.substr(0, split_index);
-    query = line.substr(split_index + 1);
+    query = line.substr(0, split_index);
+    bin = line.substr(split_index + 1);
     queries.push_back(query);
   }
   inputfile.close();
