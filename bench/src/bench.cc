@@ -284,27 +284,46 @@ void Benchmark::BenchmarkLookupSA() {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
-    fprintf(stderr, "Usage: %s [inputfile] [queryfile]\n", argv[0]);
+  if (argc != 4) {
+    fprintf(stderr, "Usage: %s [inputfile] [queryfile] [type]\n", argv[0]);
     return -1;
   }
 
   std::string input_file = argv[1];
   std::string query_file = argv[2];
+  std::string bench_type = argv[3];
 
   Benchmark bench(input_file, query_file);
 
-  bench.BenchmarkLookupNPA();
-  bench.BenchmarkLookupISA();
-  bench.BenchmarkLookupSA();
+  if(bench_type == "all") {
+    bench.BenchmarkLookupNPA();
+    bench.BenchmarkLookupISA();
+    bench.BenchmarkLookupSA();
 
-  bench.BenchmarkExtractTicks();
-  bench.BenchmarkCountTicks();
-  bench.BenchmarkSearchTicks();
+    bench.BenchmarkExtractTicks();
+    bench.BenchmarkCountTicks();
+    bench.BenchmarkSearchTicks();
 
-  bench.BenchmarkExtract();
-  bench.BenchmarkCount();
-  bench.BenchmarkSearch();
+    bench.BenchmarkExtract();
+    bench.BenchmarkCount();
+    bench.BenchmarkSearch();
+  } else if(bench_type == "core") {
+    bench.BenchmarkLookupNPA();
+    bench.BenchmarkLookupISA();
+    bench.BenchmarkLookupSA();
+  } else if(bench_type == "file") {
+    bench.BenchmarkExtract();
+    bench.BenchmarkCount();
+    bench.BenchmarkSearch();
+  } else if(bench_type == "search") {
+    bench.BenchmarkSearch();
+  } else if(bench_type == "count") {
+    bench.BenchmarkCount();
+  } else if(bench_type == "extract") {
+    bench.BenchmarkExtract();
+  } else {
+    fprintf(stderr, "Unsupported type %s\n", bench_type.c_str());
+  }
 
   return 0;
 }
