@@ -24,7 +24,12 @@ set(LIBRARY $ENV{HOME}/lib)
 include_directories(${INCLUDE})
 link_directories(${LIBRARY})
 add_executable(bench src/bench.cc)
+add_executable(bench_arr src/bench_arr.cc)
 
 target_link_libraries(bench sdsl)
 target_link_libraries(bench divsufsort)
 target_link_libraries(bench divsufsort64)
+
+target_link_libraries(bench_arr sdsl)
+target_link_libraries(bench_arr divsufsort)
+target_link_libraries(bench_arr divsufsort64)
