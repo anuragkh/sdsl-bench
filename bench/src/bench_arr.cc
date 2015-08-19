@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
   TimeStamp t0, t1;
 
-  sdsl::int_vector<30> array(ARRAY_SIZE);
+  sdsl::int_vector<> array(ARRAY_SIZE, 0, 30);
 
   t0 = GetTimestamp();
   for (size_t i = 0; i < ARRAY_SIZE; i++) {
